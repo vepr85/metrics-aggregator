@@ -1,0 +1,7 @@
+server:
+  port: 9999
+  servlet:
+    context-path: /api
+metric:
+  url: http://localhost:8888
+  checkRange: 300
