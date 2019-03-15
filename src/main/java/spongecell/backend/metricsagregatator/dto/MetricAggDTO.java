@@ -25,13 +25,4 @@ public class MetricAggDTO {
     public void summInteraction(long interaction){
         this.interaction += interaction;
     }
-
-    public static MetricAggDTO emptyEntity() {
-        return MetricAggDTO
-                .builder()
-                .click(0)
-                .impression(0)
-                .interaction(0)
-                .build();
-    }
 }

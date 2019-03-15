@@ -1,5 +1,6 @@
 package spongecell.backend.metricsagregatator.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import spongecell.backend.metricsagregatator.dto.*;
@@ -18,13 +19,15 @@ import static java.util.stream.Collectors.*;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AggregatorService {
 
+    private final LookupService lookupService;
     /**
      * Total sum of each metric collected, grouped by brand, sorted by total impressions descending.
      *
      * @param src
-     * @return
+     * @return List<SummaryByBrandDTO>
      */
     public List<SummaryByBrandDTO> groupByBrand(List<MetricResponseDTO> src) {
         if (!src.isEmpty()) {
@@ -37,7 +40,7 @@ public class AggregatorService {
                     .collect(groupingBy(BrandMetricsDTO::getBrandId))
                     .forEach((key, brandMs) -> {
                         int brandId = key;
-                        final MetricAggDTO aggDTO = MetricAggDTO.emptyEntity();
+                        final MetricAggDTO aggDTO = emptyEntity();
                         brandMs.forEach(brandM -> aggregateMetricByBrand(aggDTO, brandM));
                         groupedMap.put(brandId, aggDTO);
                     });
@@ -50,7 +53,7 @@ public class AggregatorService {
             return finalMap.entrySet().stream()
                     .map(entry -> SummaryByBrandDTO.builder()
                             .brandId(entry.getKey())
-                            .brandName(LookupService.getBrands().get(entry.getKey()))
+                            .brandName(lookupService.getBrands().get(entry.getKey()))
                             .metrics(entry.getValue())
                             .build())
                     .collect(toList());
@@ -64,7 +67,7 @@ public class AggregatorService {
      * then brand name, ascending, i.e.
      *
      * @param src
-     * @return
+     * @return List<SummaryByDateBrandDTO>
      */
     public List<SummaryByDateBrandDTO> groupByDateBrand(List<MetricResponseDTO> src) {
         if (!src.isEmpty()) {
@@ -79,7 +82,7 @@ public class AggregatorService {
                     .forEach((date, brandsMap) -> {
                         Map<Integer, MetricAggDTO> mapTree = new TreeMap<>();
                         brandsMap.forEach((brandId, brandMs) -> {
-                            final MetricAggDTO aggDTO = MetricAggDTO.emptyEntity();
+                            final MetricAggDTO aggDTO = emptyEntity();
                             brandMs.forEach(brandM -> aggregateMetricByBrand(aggDTO, brandM));
                             mapTree.put(brandId, aggDTO);
                         });
@@ -95,7 +98,7 @@ public class AggregatorService {
                             .map(entryL -> SummaryByDateBrandDTO
                                     .builder()
                                     .brandId(entryL.getKey())
-                                    .brandName(LookupService.getBrands().get(entryL.getKey()))
+                                    .brandName(lookupService.getBrands().get(entryL.getKey()))
                                     .dateTime(entryH.getKey())
                                     .metrics(entryL.getValue())
                                     .build())
@@ -111,7 +114,7 @@ public class AggregatorService {
      * Total sum of the metric counts, grouped by datetime (rounded to the hour), sorted by datetime ascending, i.e.
      *
      * @param src
-     * @return
+     * @return List<SummaryByDateTimeOnlyDTO>
      */
     public List<SummaryByDateTimeOnlyDTO> groupByDateTime(List<MetricResponseDTO> src) {
         if (!src.isEmpty()) {
@@ -147,7 +150,7 @@ public class AggregatorService {
      * Total sum of the metric counts collected, grouped by metric
      *
      * @param src
-     * @return
+     * @return MetricAggDTO
      */
     public MetricAggDTO groupByMetric(List<MetricResponseDTO> src) {
         if (!src.isEmpty()) {
@@ -158,8 +161,7 @@ public class AggregatorService {
                     .flatMap(Collection::stream)
                     .map(BrandMetricsDTO::getMetrics)
                     .flatMap(Collection::stream)
-                    .collect(groupingBy(x -> MetricType.valueOf(x.getMetric().toUpperCase()),
-                            summingLong(MetricDTO::getCount)));
+                    .collect(groupingBy(MetricDTO::getMetric, summingLong(MetricDTO::getCount)));
 
             reslt.setInteraction(metricsMap.get(MetricType.INTERACTION));
             reslt.setImpression(metricsMap.get(MetricType.IMPRESSION));
@@ -168,7 +170,7 @@ public class AggregatorService {
             return reslt;
         }
 
-        return MetricAggDTO.emptyEntity();
+        return emptyEntity();
     }
 
     private void aggregateMetricByBrand(MetricAggDTO aggDTO, BrandMetricsDTO brandM) {
@@ -179,13 +181,13 @@ public class AggregatorService {
 
     private void calculateMetric(MetricAggDTO aggDTO, MetricDTO metric) {
         switch (metric.getMetric()) {
-            case "click":
+            case CLICK:
                 aggDTO.summClick(metric.getCount());
                 break;
-            case "interaction":
+            case INTERACTION:
                 aggDTO.summInteraction(metric.getCount());
                 break;
-            case "impression":
+            case IMPRESSION:
                 aggDTO.summImpression(metric.getCount());
                 break;
         }
@@ -197,5 +199,14 @@ public class AggregatorService {
                 .map(MetricResponseDTO::getBrandMetrics)
                 .flatMap(Collection::stream)
                 .collect(toList());
+    }
+
+    private MetricAggDTO emptyEntity() {
+        return MetricAggDTO
+                .builder()
+                .click(0)
+                .impression(0)
+                .interaction(0)
+                .build();
     }
 }

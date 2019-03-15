@@ -18,12 +18,4 @@ import java.util.List;
 public class MetricResponseDTO {
     private int size;
     private List<BrandMetricsDTO> brandMetrics = new ArrayList<>();
-
-    public static MetricResponseDTO emptyResponse() {
-        return MetricResponseDTO
-                .builder()
-                .size(0)
-                .brandMetrics(new ArrayList<>())
-                .build();
-    }
 }

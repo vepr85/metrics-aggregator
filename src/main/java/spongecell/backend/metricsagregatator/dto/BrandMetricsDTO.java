@@ -6,6 +6,9 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Complex container for metrics
+ */
 @Data
 public class BrandMetricsDTO {
     private int brandId;

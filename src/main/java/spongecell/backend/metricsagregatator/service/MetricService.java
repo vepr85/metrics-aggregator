@@ -1,11 +1,11 @@
 package spongecell.backend.metricsagregatator.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import spongecell.backend.metricsagregatator.config.HttpClientConfig;
+import spongecell.backend.metricsagregatator.config.MetricSettings;
+import spongecell.backend.metricsagregatator.config.RestConfig;
 import spongecell.backend.metricsagregatator.controller.RestWorker;
 import spongecell.backend.metricsagregatator.controller.SharedObject;
 import spongecell.backend.metricsagregatator.dto.MetricResponseDTO;
@@ -22,26 +22,16 @@ import java.util.concurrent.*;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class MetricService {
 
-    @Value("${metric.url}")
-    private String metricUrl;
-    @Value("${metric.checkRange}")
-    private long metricCheckRange;
-    @Value("${metric.workers}")
-    private int workers;
-
-    private final HttpClientConfig rest;
+    private final MetricSettings settings;
+    private final RestConfig rest;
+    @Qualifier("fixedThreadPool")
     private final ExecutorService threadPool;
 
     //create a list to hold the Future object associated with Callable
     private final List<MetricResponseDTO> listResult = new ArrayList<>();
-
-    @Autowired
-    public MetricService(HttpClientConfig rest, @Qualifier("fixedThreadPool") ExecutorService threadPool) {
-        this.rest = rest;
-        this.threadPool = threadPool;
-    }
 
     public List<MetricResponseDTO> processTask() {
         listResult.clear();
@@ -52,13 +42,13 @@ public class MetricService {
         log.info("### parallelTask entered, thread: {}", Thread.currentThread().getName());
         //Get ExecutorService from Executors utility class, thread pool size is THREADS_CNT
         //Create RestWorker instance
-        final CountDownLatch latch = new CountDownLatch(workers);
+        final CountDownLatch latch = new CountDownLatch(settings.getWorkers());
         final SharedObject sharedObject = new SharedObject(latch);
         final List<Future<MetricResponseDTO>> list = new ArrayList<>();
         
-        for (int i = 0; i < workers; i++) {
+        for (int i = 0; i < settings.getWorkers(); i++) {
             //submit Callable tasks to be executed by thread pool
-            Future<MetricResponseDTO> future = threadPool.submit(new RestWorker(metricUrl, sharedObject, rest));
+            Future<MetricResponseDTO> future = threadPool.submit(new RestWorker(settings.getUrl(), sharedObject, rest));
             //add Future to the list, we can get return value using Future
             list.add(future);
             latch.countDown();
@@ -75,7 +65,7 @@ public class MetricService {
 
     private void awaitAndTerminate(List<Future<MetricResponseDTO>> list) {
         try {
-            if (!threadPool.awaitTermination(metricCheckRange, TimeUnit.MILLISECONDS)) {
+            if (!threadPool.awaitTermination(settings.getCheckRange(), TimeUnit.MILLISECONDS)) {
                 for (Future<MetricResponseDTO> fut : list) {
                     if (fut.isDone()) {
                         handleFuture(fut);

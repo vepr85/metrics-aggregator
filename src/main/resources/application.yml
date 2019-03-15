@@ -1,3 +1,7 @@
+spring:
+  jackson:
+    mapper:
+      ACCEPT_CASE_INSENSITIVE_ENUMS: true
 server:
   port: 9999
   servlet:
@@ -6,3 +10,11 @@ metric:
   url: http://localhost:8888
   checkRange: 300
   workers: 100
+httpclient:
+  connectTimeout: 1000
+  connectRequestTimeout: 1000
+  keepAliveTime: 5000
+  readTimeout: 1000
+  bufferRequestBody: true
+  maxPoolSize: 100
+  connectionTTL: 1000

@@ -1,13 +1,18 @@
 package spongecell.backend.metricsagregatator.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import spongecell.backend.metricsagregatator.dto.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import spongecell.backend.metricsagregatator.dto.MetricAggDTO;
+import spongecell.backend.metricsagregatator.dto.SummaryByBrandDTO;
+import spongecell.backend.metricsagregatator.dto.SummaryByDateBrandDTO;
+import spongecell.backend.metricsagregatator.dto.SummaryByDateTimeOnlyDTO;
 import spongecell.backend.metricsagregatator.service.AggregatorService;
 import spongecell.backend.metricsagregatator.service.MetricService;
 
-import java.util.Collections;
 import java.util.List;
+
 
 /**
  * Controller for handling requests for metrics from backend
@@ -15,42 +20,17 @@ import java.util.List;
  * Created by abyakimenko on 04.03.2019.
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/aggregate")
 public class AggregatorController {
+
     private final MetricService metricService;
     private final AggregatorService aggregatorService;
-
-    @Autowired
-    public AggregatorController(MetricService metricService, AggregatorService aggregatorService) {
-        this.metricService = metricService;
-        this.aggregatorService = aggregatorService;
-    }
-
-    /**
-     * test1 method - check1
-     *
-     * @return MetricResponseDTO
-     */
-    @GetMapping("/test")
-    public MetricResponseDTO test() {
-        List<MetricResponseDTO> responses = metricService.processTask();
-        return responses.stream().findFirst().orElse(MetricResponseDTO.emptyResponse());
-    }
-
-    /**
-     * test2 method - check2
-     *
-     * @return
-     */
-    @PostMapping("/test1")
-    public void test1(@RequestBody MetricResponseDTO metrics) {
-        aggregatorService.groupByBrand(Collections.singletonList(metrics));
-    }
 
     /**
      * Collects data by brand
      *
-     * @return
+     * @return List<SummaryByBrandDTO>
      */
     @GetMapping("/by-brand")
     public List<SummaryByBrandDTO> byBrand() {
@@ -60,7 +40,7 @@ public class AggregatorController {
     /**
      * Collects metric data by datetime and brand desc
      *
-     * @return
+     * @return List<SummaryByDateBrandDTO>
      */
     @GetMapping("/by-date-brand")
     public List<SummaryByDateBrandDTO> byDateBrand() {
@@ -70,7 +50,7 @@ public class AggregatorController {
     /**
      * Collects metric data by datetime asc
      *
-     * @return
+     * @return List<SummaryByDateTimeOnlyDTO>
      */
     @GetMapping("/by-date-time")
     public List<SummaryByDateTimeOnlyDTO> byDateTimeOnly() {
@@ -80,7 +60,7 @@ public class AggregatorController {
     /**
      * Collects metric data by metric type
      *
-     * @return
+     * @return MetricAggDTO
      */
     @GetMapping("/by-metric")
     public MetricAggDTO byMetric() {

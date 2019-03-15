@@ -17,12 +17,4 @@ import java.time.ZonedDateTime;
 public class SummaryByDateTimeOnlyDTO {
     private ZonedDateTime dateTime;
     private MetricAggDTO metrics;
-
-    public static SummaryByDateTimeOnlyDTO emptyEntity() {
-        return SummaryByDateTimeOnlyDTO
-                .builder()
-                .dateTime(ZonedDateTime.now())
-                .metrics(MetricAggDTO.emptyEntity())
-                .build();
-    }
 }

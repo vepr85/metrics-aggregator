@@ -2,11 +2,11 @@ package spongecell.backend.metricsagregatator.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import spongecell.backend.metricsagregatator.config.HttpClientConfig;
+import spongecell.backend.metricsagregatator.config.RestConfig;
 import spongecell.backend.metricsagregatator.dto.MetricResponseDTO;
 
 import java.util.ArrayList;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 @Slf4j
@@ -14,9 +14,9 @@ public class RestWorker implements Callable<MetricResponseDTO> {
 
     private final String metricUrl;
     private final SharedObject object;
-    private final HttpClientConfig rest;
+    private final RestConfig rest;
 
-    public RestWorker(String metricUrl, SharedObject object, HttpClientConfig rest) {
+    public RestWorker(String metricUrl, SharedObject object, RestConfig rest) {
         this.metricUrl = metricUrl;
         this.object = object;
         this.rest = rest;
@@ -36,12 +36,11 @@ public class RestWorker implements Callable<MetricResponseDTO> {
         ResponseEntity<MetricResponseDTO> responseBody = rest.restTemplate()
                 .getForEntity(metricUrl.concat("/v1/metrics"), MetricResponseDTO.class);
 
-        return Objects.isNull(responseBody) ? MetricResponseDTO
-                .builder()
-                .size(0)
-                .brandMetrics(new ArrayList<>())
-                .build()
-                :
-                responseBody.getBody();
+        return Optional.ofNullable(responseBody.getBody())
+                .orElse(MetricResponseDTO
+                        .builder()
+                        .size(0)
+                        .brandMetrics(new ArrayList<>())
+                        .build());
     }
 }
