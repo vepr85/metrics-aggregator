@@ -10,11 +10,11 @@ metric:
   url: http://localhost:8888
   checkRange: 300
   workers: 100
-httpclient:
-  connectTimeout: 1000
-  connectRequestTimeout: 1000
-  keepAliveTime: 5000
-  readTimeout: 1000
-  bufferRequestBody: true
-  maxPoolSize: 100
-  connectionTTL: 1000
+http-client:
+  connect-timeout: 1000
+  connect-request-timeout: 1000
+  keep-alive-time: 5000
+  read-timeout: 1000
+  buffer-requestBody: true
+  max-pool-size: 100
+  connection-TTL: 1000

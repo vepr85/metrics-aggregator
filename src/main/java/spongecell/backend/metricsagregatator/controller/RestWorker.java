@@ -1,40 +1,39 @@
 package spongecell.backend.metricsagregatator.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import spongecell.backend.metricsagregatator.config.MetricSettings;
 import spongecell.backend.metricsagregatator.config.RestConfig;
 import spongecell.backend.metricsagregatator.dto.MetricResponseDTO;
 
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 
 @Slf4j
+@RequiredArgsConstructor
+@Component
 public class RestWorker implements Callable<MetricResponseDTO> {
 
-    private final String metricUrl;
-    private final SharedObject object;
     private final RestConfig rest;
-
-    public RestWorker(String metricUrl, SharedObject object, RestConfig rest) {
-        this.metricUrl = metricUrl;
-        this.object = object;
-        this.rest = rest;
-    }
+    private final CountDownLatch latch;
+    private final MetricSettings settings;
 
     @Override
     public MetricResponseDTO call() throws InterruptedException {
         log.info("RestWorker thread STARTED: {}", Thread.currentThread().getName());
-        object.getCountDownLatch().await();
+        latch.await();
         MetricResponseDTO result = processTask();
         log.info("RestWorker thread ENDED: {}", Thread.currentThread().getName());
         return result;
     }
 
     private MetricResponseDTO processTask() {
-
         ResponseEntity<MetricResponseDTO> responseBody = rest.restTemplate()
-                .getForEntity(metricUrl.concat("/v1/metrics"), MetricResponseDTO.class);
+                .getForEntity(settings.getUrl().concat("/v1/metrics"), MetricResponseDTO.class);
 
         return Optional.ofNullable(responseBody.getBody())
                 .orElse(MetricResponseDTO
