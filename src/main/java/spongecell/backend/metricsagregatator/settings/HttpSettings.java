@@ -1,4 +1,4 @@
-package spongecell.backend.metricsagregatator.config;
+package spongecell.backend.metricsagregatator.settings;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

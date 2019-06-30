@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.stereotype.Service;
-import spongecell.backend.metricsagregatator.config.MetricSettings;
-import spongecell.backend.metricsagregatator.controller.RestWorker;
+import spongecell.backend.metricsagregatator.settings.MetricSettings;
+import spongecell.backend.metricsagregatator.workers.RestWorker;
 import spongecell.backend.metricsagregatator.dto.MetricResponseDTO;
 
 import java.util.ArrayList;

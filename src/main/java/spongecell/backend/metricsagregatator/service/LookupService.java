@@ -6,8 +6,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import spongecell.backend.metricsagregatator.config.MetricSettings;
-import spongecell.backend.metricsagregatator.config.RestConfig;
+import spongecell.backend.metricsagregatator.configuration.RestConfiguration;
 import spongecell.backend.metricsagregatator.dto.BrandDTO;
 
 import java.util.HashMap;
@@ -26,8 +25,7 @@ import static java.util.stream.Collectors.toMap;
 @RequiredArgsConstructor
 public class LookupService implements InitializingBean {
 
-    private final RestConfig rest;
-    private final MetricSettings settings;
+    private final RestConfiguration rest;
     @Getter
     private Map<Integer, String> brands = new HashMap<>();
 
@@ -37,15 +35,14 @@ public class LookupService implements InitializingBean {
     }
 
     private void initBrands() {
-        final String requestUrl = settings.getUrl().concat("/v1/brands");
-
         final ParameterizedTypeReference<List<BrandDTO>> type = new ParameterizedTypeReference<List<BrandDTO>>() {
         };
-        Optional<List<BrandDTO>> response = Optional.ofNullable(rest
+        final List<BrandDTO> body = rest
                 .restTemplate()
-                .exchange(requestUrl, HttpMethod.GET, null, type)
-                .getBody());
+                .exchange("/v1/brands", HttpMethod.GET, null, type)
+                .getBody();
 
+        Optional<List<BrandDTO>> response = Optional.ofNullable(body);
         response.ifPresent(brandDTOS -> brands = brandDTOS
                 .stream()
                 .collect(toMap(BrandDTO::getId, BrandDTO::getName)));
